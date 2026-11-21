@@ -1,4 +1,5 @@
 #include "scene-mirror.hpp"
+#include "obs/scene-monitor.hpp"
 
 namespace melton {
 
@@ -237,6 +238,28 @@ void SceneMirror::RebuildAll()
 		}
 		t->byUuid[uuid] = scene;
 		t->passthrough++;
+	}
+
+	// Studio Mode private copy: with "Duplicate scene" on, OBS puts a private copy of the
+	// scene (new UUID, same name) on Program. It is not in obs_enum_scenes, so add it here.
+	{
+		ProgramState prog = ReadProgram();
+		OBSSource pt = prog.target;
+		const char *puuid = pt ? obs_source_get_uuid(pt) : nullptr;
+		obs_scene_t *ps = pt ? obs_scene_from_source(pt) : nullptr;
+		if (puuid && ps && t->byUuid.find(puuid) == t->byUuid.end() && !exclusions_.Matches(pt)) {
+			Watch(*t, pt, false);
+			OBSSource m;
+			if (ContainsExcluded(ps, 0))
+				m = CopyScene(*t, ps, 0);
+			if (m) {
+				t->byUuid[puuid] = m;
+				t->mirrored++;
+			} else {
+				t->byUuid[puuid] = pt;
+				t->passthrough++;
+			}
+		}
 	}
 
 	std::shared_ptr<Table> old;
