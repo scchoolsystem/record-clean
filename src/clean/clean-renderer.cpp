@@ -65,6 +65,10 @@ bool CleanRenderer::Start(uint32_t outW, uint32_t outH, uint32_t fps, std::strin
 	OBSSource mirrorScene = mirror_.Lookup(st.target);
 	OBSSource clone = transitions_.Get(st.transition);
 	if (!mirrorScene || !clone) {
+		MLOG(LOG_WARNING, "Clean start diag: target='%s' uuid=%s mirror=%s transition='%s' id=%s clone=%s",
+		     SafeStr(obs_source_get_name(st.target)).c_str(), SafeStr(obs_source_get_uuid(st.target)).c_str(),
+		     mirrorScene ? "ok" : "MISSING", SafeStr(obs_source_get_name(st.transition)).c_str(),
+		     SafeStr(obs_source_get_id(st.transition)).c_str(), clone ? "ok" : "MISSING");
 		error = "Could not prepare the clean scene or transition";
 		return false;
 	}
