@@ -28,7 +28,11 @@
             }
         }
     },
-    "platformConfig": {},
+    "platformConfig": {
+        "macos": {
+            "bundleId": "com.smartdevkenya.melton-dual-feed-recorder"
+        }
+    },
     "name": "melton-dual-feed-recorder",
     "displayName": "Melton Dual Feed Recorder",
     "version": "1.0.0",
