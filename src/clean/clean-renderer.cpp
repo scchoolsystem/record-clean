@@ -43,6 +43,8 @@ bool CleanRenderer::Start(uint32_t outW, uint32_t outH, uint32_t fps, std::strin
 		fps = mainFps;
 	}
 	fps_ = fps;
+	outW_ = outW;
+	outH_ = outH;
 
 	// Same canvas as OBS (so scene transforms match exactly), own output size/fps,
 	// always 8-bit NV12 for H.264.

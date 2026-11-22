@@ -36,9 +36,14 @@ public:
 	void Shutdown();              // OBS exiting: stops cleanly, blocks until the file is finalised
 	bool Start(std::string &err); // clean recording
 	void Stop();
-	bool StartPreview(std::string &err);
+	bool StartPreview(std::string &err); // low-cost 640x360 mix, only for the in-dock test preview
 	void StopPreview();
 	bool PreviewRunning() const { return previewOnly_; }
+	// "Arm": keep the clean feed running at the configured size/fps without recording, so it can be
+	// shown on another monitor (projector window) or used as the "Melton Clean Feed" source.
+	bool Arm(std::string &err);
+	void Disarm();
+	bool Armed() const { return armed_; }
 
 	CleanStatus Status();
 	ExclusionSet &Exclusions() { return exclusions_; }
@@ -67,6 +72,7 @@ private:
 	OBSSignal startSig_, stopSig_;
 	std::atomic<CleanState> state_{CleanState::Stopped};
 	bool previewOnly_ = false;
+	bool armed_ = false;
 	bool retriedSoftware_ = false;
 	std::string path_, lastError_, encoderName_, requestedEncoder_;
 	uint64_t startNs_ = 0;

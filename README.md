@@ -62,6 +62,19 @@ Restart OBS. Dock: View -> Docks -> MELTON DUAL FEED.
 * **Not done:** no Windows DLL was built, the plugin was never loaded into OBS, and none of the 8 tests in `docs/TEST-PLAN.md` have been run. Treat the first run as a test session, not production.
 * `buildspec.json` pins OBS sources 32.2.2 (hash computed from the release archive). obs-deps/Qt pins are the template's (2025-07-11); if configure reports a hash mismatch or missing deps, update those entries from the OBS 32.2.2 release's dependency versions.
 
+## Showing the clean feed somewhere else
+
+Three ways, all driven by the same clean renderer:
+
+1. **Projector window (dock).** In the MELTON DUAL FEED dock pick a monitor and click **Fullscreen projector** (or **Windowed projector**). Esc or double-click closes it. This arms the clean feed automatically.
+2. **"Melton Clean Feed" source.** Add Sources -> *Melton Clean Feed* to any scene. Use a dedicated output scene that is never your Program. Then use OBS itself:
+   * right-click the source or scene -> **Fullscreen Projector (Source/Scene)** -> choose the monitor, or
+   * Start Virtual Camera with output type *Source* or *Scene*, to feed Zoom/Teams/etc., or
+   * send that scene/source out through an NDI plugin (e.g. DistroAV) if you use one (not tested here).
+3. **Recording** keeps working as before; an armed feed is reused, not restarted.
+
+**Arm clean feed** keeps the clean mix running at the configured size/FPS without recording (costs one extra render; no encoder). Recording starting or stopping does not interrupt an armed feed. The source is always left out of the clean composition itself (no feedback loop). The source carries video only; programme audio is the normal OBS mix.
+
 ## Known limitations
 
 1. Transitions are replicated by type/settings/duration started when the Program target changes. Same look, not frame-locked to OBS's transition. Studio-mode T-bar/manual transitions and fade-to-black are not mirrored (clean cuts to the right scene).

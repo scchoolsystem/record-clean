@@ -4,6 +4,14 @@
 namespace melton {
 
 static constexpr int kMaxDepth = 12; // nested scene recursion guard
+
+// The "Melton Clean Feed" source shows the clean view itself; mirroring it would create a
+// feedback loop, so it is always left out of the clean composition.
+static bool IsOwnSource(obs_source_t *src)
+{
+	const char *id = src ? obs_source_get_id(src) : nullptr;
+	return id && strcmp(id, "melton_clean_feed") == 0;
+}
 static std::atomic<unsigned> g_mirrorCounter{0};
 
 SceneMirror::SceneMirror(ExclusionSet &exclusions) : exclusions_(exclusions)
@@ -81,7 +89,7 @@ static bool ContainsEnum(obs_scene_t *, obs_sceneitem_t *item, void *param)
 {
 	auto *c = static_cast<ContainsCtx *>(param);
 	obs_source_t *src = obs_sceneitem_get_source(item);
-	if (c->ex->Matches(src)) {
+	if (c->ex->Matches(src) || IsOwnSource(src)) {
 		c->found = true;
 		return false;
 	}
@@ -142,7 +150,7 @@ static bool CopyEnum(obs_scene_t *, obs_sceneitem_t *item, void *param)
 {
 	auto *c = static_cast<CopyCtx *>(param);
 	obs_source_t *src = obs_sceneitem_get_source(item);
-	if (!src || c->ex->Matches(src))
+	if (!src || c->ex->Matches(src) || IsOwnSource(src))
 		return true; // excluded: simply not added to the mirror
 
 	if (obs_sceneitem_is_group(item)) {

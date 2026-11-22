@@ -60,10 +60,40 @@ bool RecordingManager::StartPreview(std::string &err)
 
 void RecordingManager::StopPreview()
 {
-	if (previewOnly_ && state_ == CleanState::Stopped) {
+	if (previewOnly_ && !armed_ && state_ == CleanState::Stopped) {
 		renderer_.Stop();
 		previewOnly_ = false;
 	}
+}
+
+bool RecordingManager::Arm(std::string &err)
+{
+	Settings s = SettingsStore::Get().Snapshot();
+	if (renderer_.Running() && (renderer_.OutWidth() != s.width || renderer_.OutHeight() != s.height)) {
+		if (state_ != CleanState::Stopped) {
+			err = "Stop the clean recording before changing the clean feed size";
+			return false;
+		}
+		renderer_.Stop(); // preview-size mix -> full-size mix
+	}
+	if (!renderer_.Start(s.width, s.height, s.fps, err))
+		return false;
+	previewOnly_ = false;
+	armed_ = true;
+	if (onStateChanged)
+		onStateChanged();
+	return true;
+}
+
+void RecordingManager::Disarm()
+{
+	armed_ = false;
+	if (state_ == CleanState::Stopped) {
+		renderer_.Stop();
+		previewOnly_ = false;
+	}
+	if (onStateChanged)
+		onStateChanged();
 }
 
 bool RecordingManager::Start(std::string &err)
@@ -79,6 +109,8 @@ bool RecordingManager::Start(std::string &err)
 		renderer_.Stop();
 		previewOnly_ = false;
 	}
+	if (renderer_.Running() && (renderer_.OutWidth() != s.width || renderer_.OutHeight() != s.height))
+		renderer_.Stop(); // armed at an older size: restart at the new size
 	EncoderInfo enc = ResolveEncoder(s.encoderId);
 	bool ok = StartInternal(enc, err);
 	if (!ok && enc.hardware && s.encoderId == "auto") {
@@ -216,12 +248,14 @@ void RecordingManager::Teardown()
 	// Encoders must be released before the view/mix that feeds them goes away.
 	venc_ = nullptr;
 	aenc_ = nullptr;
-	renderer_.Stop();
+	if (!armed_) // an armed feed keeps running (projector / source) after the recording ends
+		renderer_.Stop();
 }
 
 void RecordingManager::Shutdown()
 {
 	inited_ = false;
+	armed_ = false;
 	if (output_ && obs_output_active(output_)) {
 		MLOG(LOG_INFO, "OBS is closing: finalising clean recording");
 		state_ = CleanState::Stopping;

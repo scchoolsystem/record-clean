@@ -45,6 +45,7 @@ target_sources(
     src/clean/source-exclusion.cpp
     src/clean/scene-mirror.cpp
     src/clean/clean-renderer.cpp
+    src/clean/clean-source.cpp
     src/recording/file-manager.cpp
     src/recording/video-encoder.cpp
     src/recording/audio-router.cpp

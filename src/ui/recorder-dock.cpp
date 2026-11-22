@@ -5,7 +5,10 @@
 #include "settings-dialog.hpp"
 #include "source-manager.hpp"
 
+#include <QComboBox>
 #include <QDesktopServices>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QDialog>
 #include <QDir>
 #include <QGridLayout>
@@ -105,6 +108,31 @@ RecorderDock::RecorderDock(RecordingManager &rm, QWidget *parent) : QWidget(pare
 	btns->addWidget(stopClean_, 1, 1);
 	btns->addWidget(folder, 2, 0, 1, 2);
 	root->addLayout(btns);
+
+	// Show the clean feed somewhere else (projector / second monitor).
+	auto *out = new QGridLayout;
+	arm_ = new QPushButton("Arm clean feed");
+	arm_->setCheckable(true);
+	arm_->setToolTip("Keep the clean feed running without recording, so it can be projected or used as a source");
+	screen_ = new QComboBox;
+	auto screens = QGuiApplication::screens();
+	for (int i = 0; i < screens.size(); i++)
+		screen_->addItem(QString("Monitor %1: %2 (%3x%4)")
+					 .arg(i + 1)
+					 .arg(screens[i]->name())
+					 .arg(screens[i]->geometry().width())
+					 .arg(screens[i]->geometry().height()),
+				 i);
+	auto *projFull = new QPushButton("Fullscreen projector");
+	auto *projWin = new QPushButton("Windowed projector");
+	out->addWidget(arm_, 0, 0, 1, 2);
+	out->addWidget(screen_, 1, 0, 1, 2);
+	out->addWidget(projFull, 2, 0);
+	out->addWidget(projWin, 2, 1);
+	root->addLayout(out);
+	connect(arm_, &QPushButton::clicked, this, [this]() { ToggleArm(); });
+	connect(projFull, &QPushButton::clicked, this, [this]() { OpenProjector(true); });
+	connect(projWin, &QPushButton::clicked, this, [this]() { OpenProjector(false); });
 
 	auto *tabs = new QTabWidget;
 	settings_ = new SettingsPanel(rm_);
@@ -212,8 +240,43 @@ void RecorderDock::ShowPreview()
 	previewDlg_->raise();
 }
 
+void RecorderDock::ToggleArm()
+{
+	if (rm_.Armed()) {
+		rm_.Disarm();
+	} else {
+		std::string err;
+		if (!rm_.Arm(err))
+			ShowError(QString::fromStdString("Cannot arm clean feed: " + err));
+	}
+	Refresh();
+}
+
+void RecorderDock::OpenProjector(bool fullscreen)
+{
+	if (!rm_.Armed()) {
+		std::string err;
+		if (!rm_.Arm(err)) {
+			ShowError(QString::fromStdString("Cannot arm clean feed: " + err));
+			return;
+		}
+	}
+#ifdef _WIN32
+	auto screens = QGuiApplication::screens();
+	int i = screen_->currentData().toInt();
+	QScreen *sc = (i >= 0 && i < screens.size()) ? screens[i] : QGuiApplication::primaryScreen();
+	new ProjectorWindow(rm_, sc, fullscreen); // deletes itself on close
+#else
+	(void)fullscreen;
+	ShowError("The projector window is available on Windows builds.");
+#endif
+	Refresh();
+}
+
 void RecorderDock::Refresh()
 {
+	arm_->setChecked(rm_.Armed());
+	arm_->setText(rm_.Armed() ? "Clean feed ARMED (click to disarm)" : "Arm clean feed");
 	CleanStatus st = rm_.Status();
 	bool dirty = obs_frontend_recording_active();
 	bool clean = st.state == CleanState::Recording;

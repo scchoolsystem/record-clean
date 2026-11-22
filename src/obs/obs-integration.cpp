@@ -29,6 +29,11 @@ RecordingManager &Integration::Manager()
 	return *g_manager;
 }
 
+RecordingManager *Integration::MaybeManager()
+{
+	return g_alive.load() ? g_manager.get() : nullptr;
+}
+
 uint64_t Integration::DirtyStartNs()
 {
 	return g_dirtyStartNs.load();
@@ -76,6 +81,7 @@ static void OnFrontendEvent(enum obs_frontend_event event, void *)
 			MLOG(LOG_WARNING, "Scene collection is changing: stopping clean recording");
 			m.Stop();
 		}
+		m.Disarm();
 		m.StopPreview();
 		m.Mirror().Clear();
 		m.Transitions().Clear();

@@ -24,6 +24,8 @@ public:
 	uint32_t BaseHeight() const { return baseH_; }
 	std::string ProgramSceneName() const;
 	uint32_t EffectiveFps() const { return fps_; }
+	uint32_t OutWidth() const { return outW_; }
+	uint32_t OutHeight() const { return outH_; }
 
 	// Main thread: scene mirrors were rebuilt; re-apply the current scene once Program is idle.
 	void MirrorsRebuilt();
@@ -41,7 +43,7 @@ private:
 
 	OBSView view_;
 	video_t *video_ = nullptr;
-	uint32_t baseW_ = 0, baseH_ = 0, fps_ = 30;
+	uint32_t baseW_ = 0, baseH_ = 0, fps_ = 30, outW_ = 0, outH_ = 0;
 	std::atomic<bool> running_{false};
 	std::atomic<bool> buildRequested_{false};
 	std::atomic<bool> reapply_{false};

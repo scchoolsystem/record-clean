@@ -1,5 +1,10 @@
 #include "preview-widget.hpp"
+#include <QGuiApplication>
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include <QResizeEvent>
+#include <QScreen>
+#include <QVBoxLayout>
 #include <QWindow>
 
 namespace melton {
@@ -86,6 +91,42 @@ void PreviewWidget::Draw(void *param, uint32_t cx, uint32_t cy)
 	obs_source_video_render(out);
 	gs_projection_pop();
 	gs_viewport_pop();
+}
+
+ProjectorWindow::ProjectorWindow(RecordingManager &rm, QScreen *screen, bool fullscreen)
+	: QWidget(nullptr, Qt::Window | Qt::FramelessWindowHint)
+{
+	setAttribute(Qt::WA_DeleteOnClose);
+	setWindowTitle("Melton Clean Feed");
+	setStyleSheet("background:black;");
+	auto *lay = new QVBoxLayout(this);
+	lay->setContentsMargins(0, 0, 0, 0);
+	lay->addWidget(new PreviewWidget(rm, this));
+	if (screen) {
+		setScreen(screen);
+		move(screen->geometry().topLeft());
+	}
+	if (fullscreen) {
+		if (screen)
+			resize(screen->geometry().size());
+		showFullScreen();
+	} else {
+		resize(960, 540);
+		show();
+	}
+}
+
+void ProjectorWindow::keyPressEvent(QKeyEvent *e)
+{
+	if (e->key() == Qt::Key_Escape)
+		close();
+	else
+		QWidget::keyPressEvent(e);
+}
+
+void ProjectorWindow::mouseDoubleClickEvent(QMouseEvent *)
+{
+	close();
 }
 
 } // namespace melton

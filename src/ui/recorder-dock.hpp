@@ -7,6 +7,8 @@ class QLabel;
 class QPushButton;
 class QTimer;
 class QDialog;
+class QComboBox;
+class QPushButton;
 
 namespace melton {
 
@@ -27,6 +29,8 @@ private:
 	void StopClean();
 	void OpenFolder();
 	void ShowPreview();
+	void ToggleArm();
+	void OpenProjector(bool fullscreen);
 	void Refresh();
 	void ShowError(const QString &msg);
 
@@ -38,6 +42,8 @@ private:
 	SettingsPanel *settings_;
 	SourceManagerPanel *sources_;
 	QDialog *previewDlg_ = nullptr;
+	QPushButton *arm_;
+	QComboBox *screen_;
 	QString errorText_;
 	uint64_t errorUntilNs_ = 0;
 };
