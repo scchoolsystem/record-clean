@@ -94,14 +94,19 @@ void PreviewWidget::Draw(void *param, uint32_t cx, uint32_t cy)
 }
 
 ProjectorWindow::ProjectorWindow(RecordingManager &rm, QScreen *screen, bool fullscreen)
-	: QWidget(nullptr, Qt::Window | Qt::FramelessWindowHint)
+	: QWidget(nullptr,
+		  Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
+	setAttribute(Qt::WA_ShowWithoutActivating);
+	setCursor(Qt::BlankCursor);
 	setWindowTitle("Melton Clean Feed");
 	setStyleSheet("background:black;");
 	auto *lay = new QVBoxLayout(this);
 	lay->setContentsMargins(0, 0, 0, 0);
-	lay->addWidget(new PreviewWidget(rm, this));
+	auto *pw = new PreviewWidget(rm, this);
+	pw->setCursor(Qt::BlankCursor);
+	lay->addWidget(pw);
 	if (screen) {
 		setScreen(screen);
 		move(screen->geometry().topLeft());
@@ -114,19 +119,6 @@ ProjectorWindow::ProjectorWindow(RecordingManager &rm, QScreen *screen, bool ful
 		resize(960, 540);
 		show();
 	}
-}
-
-void ProjectorWindow::keyPressEvent(QKeyEvent *e)
-{
-	if (e->key() == Qt::Key_Escape)
-		close();
-	else
-		QWidget::keyPressEvent(e);
-}
-
-void ProjectorWindow::mouseDoubleClickEvent(QMouseEvent *)
-{
-	close();
 }
 
 } // namespace melton

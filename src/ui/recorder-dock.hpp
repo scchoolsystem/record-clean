@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include "recording/recording-manager.hpp"
+#include <QPointer>
 #include <QWidget>
 
 class QLabel;
@@ -13,6 +14,7 @@ class QPushButton;
 namespace melton {
 
 class SettingsPanel;
+class ProjectorWindow;
 class SourceManagerPanel;
 
 // The MELTON DUAL FEED dock.
@@ -31,6 +33,7 @@ private:
 	void ShowPreview();
 	void ToggleArm();
 	void OpenProjector(bool fullscreen);
+	void CloseProjector();
 	void Refresh();
 	void ShowError(const QString &msg);
 
@@ -44,6 +47,7 @@ private:
 	QDialog *previewDlg_ = nullptr;
 	QPushButton *arm_;
 	QComboBox *screen_;
+	QPointer<ProjectorWindow> projector_;
 	QString errorText_;
 	uint64_t errorUntilNs_ = 0;
 };

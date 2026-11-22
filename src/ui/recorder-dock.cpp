@@ -129,6 +129,9 @@ RecorderDock::RecorderDock(RecordingManager &rm, QWidget *parent) : QWidget(pare
 	auto *projWin = new QPushButton("Windowed projector");
 	out->addWidget(arm_, 0, 0, 1, 2);
 	out->addWidget(screen_, 1, 0, 1, 2);
+	auto *projClose = new QPushButton("Close projector");
+	out->addWidget(projClose, 3, 0, 1, 2);
+	connect(projClose, &QPushButton::clicked, this, [this]() { CloseProjector(); });
 	out->addWidget(projFull, 2, 0);
 	out->addWidget(projWin, 2, 1);
 	root->addLayout(out);
@@ -256,8 +259,15 @@ void RecorderDock::ToggleArm()
 	Refresh();
 }
 
+void RecorderDock::CloseProjector()
+{
+	if (projector_)
+		projector_->close();
+}
+
 void RecorderDock::OpenProjector(bool fullscreen)
 {
+	CloseProjector(); // one projector at a time
 	if (!rm_.Armed()) {
 		std::string err;
 		if (!rm_.Arm(err)) {
@@ -269,7 +279,7 @@ void RecorderDock::OpenProjector(bool fullscreen)
 	auto screens = QGuiApplication::screens();
 	int i = screen_->currentData().toInt();
 	QScreen *sc = (i >= 0 && i < screens.size()) ? screens[i] : QGuiApplication::primaryScreen();
-	new ProjectorWindow(rm_, sc, fullscreen); // deletes itself on close
+	projector_ = new ProjectorWindow(rm_, sc, fullscreen); // deletes itself on close
 #else
 	(void)fullscreen;
 	ShowError("The projector window is available on Windows builds.");

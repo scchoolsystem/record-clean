@@ -32,15 +32,11 @@ private:
 };
 
 // Frameless window showing the clean feed, meant to be put fullscreen on another monitor
-// or projector. Press Esc or double-click to close.
+// or projector. It ignores mouse and keyboard input and hides the cursor; close it from the dock.
 class ProjectorWindow : public QWidget {
 	Q_OBJECT
 public:
 	ProjectorWindow(RecordingManager &rm, QScreen *screen, bool fullscreen);
-
-protected:
-	void keyPressEvent(QKeyEvent *e) override;
-	void mouseDoubleClickEvent(QMouseEvent *e) override;
 };
 
 } // namespace melton
