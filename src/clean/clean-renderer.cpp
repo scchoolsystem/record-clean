@@ -4,7 +4,8 @@
 namespace melton {
 
 CleanRenderer::CleanRenderer(SceneMirror &mirror, TransitionCache &transitions)
-	: mirror_(mirror), transitions_(transitions)
+	: mirror_(mirror),
+	  transitions_(transitions)
 {
 }
 
@@ -109,8 +110,9 @@ void CleanRenderer::Stop()
 	obs_remove_tick_callback(TickThunk, this);
 	if (view_) {
 		obs_view_set_source(view_, 0, nullptr);
-		obs_view_remove(view_); // mix is freed by the graphics thread; callers must have released encoders first
-		view_ = nullptr;        // OBSView -> obs_view_destroy
+		obs_view_remove(
+			view_);  // mix is freed by the graphics thread; callers must have released encoders first
+		view_ = nullptr; // OBSView -> obs_view_destroy
 	}
 	video_ = nullptr;
 	std::lock_guard<std::mutex> lock(mutex_);

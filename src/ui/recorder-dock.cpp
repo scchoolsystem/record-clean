@@ -42,8 +42,10 @@ QLineEdit, QComboBox, QSpinBox, QTreeWidget { background:#0f1216; border:1px sol
 static QString Hms(double sec)
 {
 	int s = int(sec);
-	return QString("%1:%2:%3").arg(s / 3600, 2, 10, QChar('0')).arg(s / 60 % 60, 2, 10, QChar('0')).arg(s % 60, 2, 10,
-													      QChar('0'));
+	return QString("%1:%2:%3")
+		.arg(s / 3600, 2, 10, QChar('0'))
+		.arg(s / 60 % 60, 2, 10, QChar('0'))
+		.arg(s % 60, 2, 10, QChar('0'));
 }
 
 static void SetInd(QLabel *l, const QString &text, const QString &color)
@@ -148,7 +150,9 @@ RecorderDock::RecorderDock(RecordingManager &rm, QWidget *parent) : QWidget(pare
 	connect(folder, &QPushButton::clicked, this, [this]() { OpenFolder(); });
 	connect(sources_, &SourceManagerPanel::previewRequested, this, [this]() { ShowPreview(); });
 
-	rm_.onStateChanged = [this]() { Refresh(); };
+	rm_.onStateChanged = [this]() {
+		Refresh();
+	};
 	timer_ = new QTimer(this);
 	connect(timer_, &QTimer::timeout, this, [this]() { Refresh(); });
 	timer_->start(500);
@@ -311,9 +315,10 @@ void RecorderDock::Refresh()
 
 	Settings s = SettingsStore::Get().Snapshot();
 	uint64_t freeBytes = st.freeBytes ? st.freeBytes : FreeSpaceFor(s.baseDir);
-	storage_->setText(QString("%1 GB free   %2")
-				  .arg(double(freeBytes) / (1024.0 * 1024 * 1024), 0, 'f', 1)
-				  .arg(clean ? QString("(clean file %1 MB)").arg(st.bytes / (1024 * 1024)) : QString()));
+	storage_->setText(
+		QString("%1 GB free   %2")
+			.arg(double(freeBytes) / (1024.0 * 1024 * 1024), 0, 'f', 1)
+			.arg(clean ? QString("(clean file %1 MB)").arg(st.bytes / (1024 * 1024)) : QString()));
 	file_->setText(st.state != CleanState::Stopped ? QString::fromStdString(st.path) : "-");
 
 	QString msg;
@@ -336,9 +341,9 @@ void RecorderDock::Refresh()
 		objName = "hint";
 	}
 	warning_->setObjectName(objName);
-	warning_->setStyleSheet(objName == "err" ? "color:#ff6b6b;font-weight:600;"
-						  : objName == "hint" ? "color:#8a93a0;"
-								      : "color:#ffcc66;font-weight:600;");
+	warning_->setStyleSheet(objName == "err"    ? "color:#ff6b6b;font-weight:600;"
+				: objName == "hint" ? "color:#8a93a0;"
+						    : "color:#ffcc66;font-weight:600;");
 	warning_->setText(msg);
 
 	bool idle = st.state == CleanState::Stopped;

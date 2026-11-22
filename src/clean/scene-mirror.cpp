@@ -194,8 +194,12 @@ void SceneMirror::CopyInto(Table &t, obs_scene_t *src, obs_scene_t *dst, obs_sce
 	c.recurseGroup = [&](obs_scene_t *gsrc, obs_scene_t *gdst, obs_sceneitem_t *gi, int d) {
 		CopyInto(t, gsrc, gdst, gi, d);
 	};
-	c.copyNested = [&](obs_scene_t *n, int d) { return CopyScene(t, n, d); };
-	c.containsExcluded = [&](obs_scene_t *n) { return ContainsExcluded(n, 0); };
+	c.copyNested = [&](obs_scene_t *n, int d) {
+		return CopyScene(t, n, d);
+	};
+	c.containsExcluded = [&](obs_scene_t *n) {
+		return ContainsExcluded(n, 0);
+	};
 	obs_scene_enum_items(src, CopyEnum, &c); // enumerates bottom -> top, so z-order is preserved
 }
 
@@ -242,7 +246,8 @@ void SceneMirror::RebuildAll()
 				t->mirrored++;
 				continue;
 			}
-			MLOG(LOG_WARNING, "Mirror of scene '%s' failed; using original scene", obs_source_get_name(scene));
+			MLOG(LOG_WARNING, "Mirror of scene '%s' failed; using original scene",
+			     obs_source_get_name(scene));
 		}
 		t->byUuid[uuid] = scene;
 		t->passthrough++;

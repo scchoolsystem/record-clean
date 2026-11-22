@@ -6,8 +6,12 @@ namespace melton {
 
 RecordingManager::RecordingManager() : mirror_(exclusions_), renderer_(mirror_, transitions_)
 {
-	mirror_.onDirty = [this]() { RequestRebuild(); };
-	exclusions_.onChanged = [this]() { RequestRebuild(); };
+	mirror_.onDirty = [this]() {
+		RequestRebuild();
+	};
+	exclusions_.onChanged = [this]() {
+		RequestRebuild();
+	};
 }
 
 RecordingManager::~RecordingManager() = default;
